@@ -95,6 +95,11 @@ li.completed {
     background: #a982d6bd;
 }
 
+.buttons {
+    display: flex;
+    gap: 8px;
+}
+
 button.delete {
     background: #dc3545;
     border: none;
@@ -107,4 +112,27 @@ button.delete {
 
 button.delete:hover {
     background: #a71d2a;
+}
+
+button.edit {
+    background: #ffc107;
+    border: none;
+    color: #494d60;
+    padding: 5px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+button.edit:hover {
+    background: #e0a800;
+}
+
+.edit-input {
+    flex: 1;
+    margin-right: 10px;
+    border: none;
+    border-radius: 6px;
+    padding: 8px;
+    font-size: 15px;
 }

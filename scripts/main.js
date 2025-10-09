@@ -2,29 +2,67 @@ const input = document.querySelector('#taskInput');
 const addBtn = document.querySelector('#addBtn');
 const taskList = document.querySelector('#taskList');
 
-let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+let tasks = new Map(Object.entries(JSON.parse(localStorage.getItem('tasks') || '{}')));
 
 function renderTasks() {
     taskList.innerHTML = '';
-    tasks.forEach((task, index) => {
-        const li = document.createElement('li');
-        li.textContent = task.text;
 
-        if (task.completed) {
-            li.classList.add('completed');
+    tasks.forEach((task, id) => {
+        const li = document.createElement('li');
+
+        if (task.isEditing) {
+            const editInput = document.createElement('input');
+            editInput.type = 'text';
+            editInput.value = task.text;
+            editInput.classList.add('edit-input');
+
+            editInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') saveEdit(id, editInput.value);
+            });
+
+            const saveBtn = document.createElement('button');
+            saveBtn.textContent = '💾';
+            saveBtn.classList.add('edit');
+            saveBtn.addEventListener('click', () => saveEdit(id, editInput.value));
+
+            li.appendChild(editInput);
+            li.appendChild(saveBtn);
+        } else {
+            const span = document.createElement('span');
+            span.textContent = task.text;
+
+            if (task.completed) {
+                li.classList.add('completed');
+            }
+
+            li.addEventListener('click', () => toggleTask(id));
+
+            const btnContainer = document.createElement('div');
+            btnContainer.classList.add('buttons');
+
+            const editBtn = document.createElement('button');
+            editBtn.textContent = '✏️';
+            editBtn.classList.add('edit');
+            editBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                editTask(id);
+            });
+
+            const delBtn = document.createElement('button');
+            delBtn.textContent = '🗑️';
+            delBtn.classList.add('delete');
+            delBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                deleteTask(id);
+            });
+
+            btnContainer.appendChild(editBtn);
+            btnContainer.appendChild(delBtn);
+
+            li.appendChild(span);
+            li.appendChild(btnContainer);
         }
 
-        li.addEventListener('click', () => toggleTask(index));
-
-        const delBtn = document.createElement('button');
-        delBtn.textContent = 'Удалить';
-        delBtn.classList.add('delete');
-        delBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            deleteTask(index);
-        });
-
-        li.appendChild(delBtn);
         taskList.appendChild(li);
     });
 }
@@ -32,23 +70,47 @@ function renderTasks() {
 function addTask() {
     const text = input.value.trim();
     if (text === '') return;
-    tasks.push({ text, completed: false });
+
+    const id = Date.now().toString();
+    tasks.set(id, { text, completed: false, isEditing: false });
+
     input.value = '';
     saveTasks();
 }
 
-function toggleTask(index) {
-    tasks[index].completed = !tasks[index].completed;
+function toggleTask(id) {
+    const task = tasks.get(id);
+    if (!task) return;
+    task.completed = !task.completed;
+    tasks.set(id, task);
     saveTasks();
 }
 
-function deleteTask(index) {
-    tasks.splice(index, 1);
+function deleteTask(id) {
+    tasks.delete(id);
+    saveTasks();
+}
+
+function editTask(id) {
+    const task = tasks.get(id);
+    if (!task) return;
+    task.isEditing = true;
+    tasks.set(id, task);
+    renderTasks();
+}
+
+function saveEdit(id, newText) {
+    const task = tasks.get(id);
+    if (!task) return;
+    task.text = newText.trim() || task.text;
+    task.isEditing = false;
+    tasks.set(id, task);
     saveTasks();
 }
 
 function saveTasks() {
-    localStorage.setItem('tasks', JSON.stringify(tasks));
+    const obj = Object.fromEntries(tasks);
+    localStorage.setItem('tasks', JSON.stringify(obj));
     renderTasks();
 }
 
