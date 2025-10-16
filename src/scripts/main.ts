@@ -1,10 +1,18 @@
-const input = document.querySelector('#taskInput');
-const addBtn = document.querySelector('#addBtn');
-const taskList = document.querySelector('#taskList');
+const input = document.querySelector<HTMLInputElement>('#taskInput')!;
+const addBtn = document.querySelector<HTMLButtonElement>('#addBtn')!;
+const taskList = document.querySelector<HTMLUListElement>('#taskList')!;
 
-let tasks = new Map(Object.entries(JSON.parse(localStorage.getItem('tasks') || '{}')));
+interface Task {
+    text: string;
+    completed: boolean;
+    isEditing: boolean;
+}
 
-function renderTasks() {
+let tasks: Map<string, Task> = new Map(
+    Object.entries(JSON.parse(localStorage.getItem('tasks') || '{}'))
+);
+
+function renderTasks(): void {
     taskList.innerHTML = '';
 
     tasks.forEach((task, id) => {
@@ -56,18 +64,15 @@ function renderTasks() {
                 deleteTask(id);
             });
 
-            btnContainer.appendChild(editBtn);
-            btnContainer.appendChild(delBtn);
-
-            li.appendChild(span);
-            li.appendChild(btnContainer);
+            btnContainer.append(editBtn, delBtn);
+            li.append(span, btnContainer);
         }
 
         taskList.appendChild(li);
     });
 }
 
-function addTask() {
+function addTask(): void {
     const text = input.value.trim();
     if (text === '') return;
 
@@ -78,7 +83,7 @@ function addTask() {
     saveTasks();
 }
 
-function toggleTask(id) {
+function toggleTask(id: string): void {
     const task = tasks.get(id);
     if (!task) return;
     task.completed = !task.completed;
@@ -86,12 +91,12 @@ function toggleTask(id) {
     saveTasks();
 }
 
-function deleteTask(id) {
+function deleteTask(id: string): void {
     tasks.delete(id);
     saveTasks();
 }
 
-function editTask(id) {
+function editTask(id: string): void {
     const task = tasks.get(id);
     if (!task) return;
     task.isEditing = true;
@@ -99,7 +104,7 @@ function editTask(id) {
     renderTasks();
 }
 
-function saveEdit(id, newText) {
+function saveEdit(id: string, newText: string): void {
     const task = tasks.get(id);
     if (!task) return;
     task.text = newText.trim() || task.text;
@@ -108,7 +113,7 @@ function saveEdit(id, newText) {
     saveTasks();
 }
 
-function saveTasks() {
+function saveTasks(): void {
     const obj = Object.fromEntries(tasks);
     localStorage.setItem('tasks', JSON.stringify(obj));
     renderTasks();
